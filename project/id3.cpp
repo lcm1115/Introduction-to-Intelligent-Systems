@@ -43,7 +43,7 @@ double subset_entropy(
     return entropy(&subset, tar_val);
 }
 
-double info_gain(vector<node>* data, string value, string tar_val) {
+double info_gain(vector<node>* data, string split_value, string tar_val) {
     map<string, int> value_count;
     double set_entropy = 0.0;
     double gain = 0.0;
@@ -55,7 +55,8 @@ double info_gain(vector<node>* data, string value, string tar_val) {
     for (map<string, int>::iterator it = value_count.begin();
          it != value_count.end(); ++it) {
         double p = (double) it->second / data->size();
-        double sub_entropy = subset_entropy(data, value, it->first, tar_val);
+        double sub_entropy =
+            subset_entropy(data, split_value, it->first, tar_val);
         set_entropy += p * sub_entropy;
     }
 
