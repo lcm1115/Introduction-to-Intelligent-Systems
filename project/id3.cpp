@@ -49,7 +49,7 @@ double info_gain(vector<node>* data, string split_value, string tar_val) {
     double gain = 0.0;
 
     // Get occurrences of each value.
-    value_count = count_occurrences(data, value);
+    value_count = count_occurrences(data, split_value);
 
     // Compute the entropy of each subset (when split by 'value').
     for (map<string, int>::iterator it = value_count.begin();
