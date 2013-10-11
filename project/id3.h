@@ -1,3 +1,6 @@
+#ifndef ID3_H
+#define ID3_H
+
 #include <map>
 #include <string>
 #include <vector>
@@ -62,3 +65,5 @@ std::map<std::string, int> count_occurrences(
 double lg(double x);
 
 }  // namespace id3
+
+#endif  // ID3_H

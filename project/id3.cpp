@@ -1,6 +1,8 @@
 #include "id3.h"
 
+#include <cstring>
 #include <cmath>
+#include <iostream>
 #include <fstream>
 #include <sstream>
 
@@ -46,6 +48,9 @@ vector<node> read_nodes_from_filepath(const string& filepath) {
         for (int i = 0; i < tmp_values.size(); ++i) {
             new_node.values[values.at(i)] = tmp_values.at(i);
         }
+        // Determine if node is positive.
+        new_node.positive =
+            strcmp("0", tmp_values.at(tmp_values.size() - 1).c_str());
         nodes.push_back(new_node);
     }
 
