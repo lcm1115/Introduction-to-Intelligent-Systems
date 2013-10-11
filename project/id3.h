@@ -6,6 +6,7 @@ namespace id3 {
 
 struct node {
     std::map<std::string, std::string> values;
+    bool positive;
 };
 
 // Computes the entropy for a given set based on a value.
