@@ -58,7 +58,7 @@ vector<node> read_nodes_from_filepath(const string& filepath) {
     return nodes;
 }
 
-double entropy(vector<node>* data, string value) {
+double entropy(const vector<node>* data, const string& value) {
     map<string, int> value_count;
     double set_entropy = 0.0;
 
@@ -75,13 +75,16 @@ double entropy(vector<node>* data, string value) {
     return set_entropy;
 }
 
-double subset_entropy(
-        vector<node>* data, string key, string split_value, string tar_val) {
+double subset_entropy(const vector<node>* data,
+                      const string& key,
+                      const string& split_value,
+                      const string& tar_val) {
     vector<node> subset;
 
     // Split the set.
-    for (vector<node>::iterator it = data->begin(); it != data->end(); ++it) {
-        if (it->values[key].compare(split_value) == 0) {
+    for (vector<node>::const_iterator it = data->begin();
+         it != data->end(); ++it) {
+        if (it->values.at(key).compare(split_value) == 0) {
             subset.push_back(*it);
         }
     }
@@ -90,7 +93,9 @@ double subset_entropy(
     return entropy(&subset, tar_val);
 }
 
-double info_gain(vector<node>* data, string split_value, string tar_val) {
+double info_gain(const vector<node>* data,
+                 const string& split_value,
+                 const string& tar_val) {
     map<string, int> value_count;
     double set_entropy = 0.0;
     double gain = 0.0;
@@ -113,15 +118,17 @@ double info_gain(vector<node>* data, string split_value, string tar_val) {
     return gain;
 }
 
-map<string, int> count_occurrences(vector<node>* data, string key) {
+map<string, int> count_occurrences(
+        const vector<node>* data, const string& key) {
     map<string, int> value_count;
    
     // Iterate across each value and count how many times it appears.
-    for (vector<node>::iterator it = data->begin(); it != data->end(); ++it) {
-        if (value_count.find(it->values[key]) != value_count.end()) {
-            ++value_count[it->values[key]];
+    for (vector<node>::const_iterator it = data->begin();
+         it != data->end(); ++it) {
+        if (value_count.find(it->values.at(key)) != value_count.end()) {
+            ++value_count[it->values.at(key)];
         } else {
-            value_count[it->values[key]] = 1;
+            value_count[it->values.at(key)] = 1;
         }
     }
 

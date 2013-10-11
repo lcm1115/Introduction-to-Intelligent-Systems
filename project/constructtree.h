@@ -28,14 +28,15 @@ void print_tree(const vertex& root);
 // 'paths' is the vector of possible paths to leaves
 void tree_to_paths(const vertex& root,
                    const std::vector<std::string>& values,
-                   std::vector<std::string>* paths);
+                   std::vector<std::string>* const paths);
 
 // Constructs a decision tree based on the given data
-vertex construct_tree(std::vector<node>* data, const std::string& tar_val);
+vertex construct_tree(
+        const std::vector<node>* const data, const std::string& tar_val);
 
 // Splits the data set along the given value
 std::map<std::string, std::vector<node> > split_nodes(
-         std::vector<node>* data, const std::string& key);
+        const std::vector<node>* const data, const std::string& key);
 
 }  // namespace id3
 
