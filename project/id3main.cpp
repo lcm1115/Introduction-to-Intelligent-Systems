@@ -11,7 +11,7 @@ using id3::construct_tree;
 using id3::entropy;
 using id3::info_gain;
 using id3::node;
-using id3::print_tree;
+using id3::tree_to_string;
 using id3::read_nodes_from_filepath;
 using id3::split_nodes;
 using id3::subset_entropy;
@@ -31,5 +31,5 @@ int main(int argc, char** argv) {
     vector<string> values;
     string tar_val = argv[2];
     vertex root = construct_tree(&nodes, tar_val);
-    print_tree(root);
+    cout << tree_to_string(root);
 }

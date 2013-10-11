@@ -20,7 +20,7 @@ struct vertex {
 
 // Given the root node of a tree, prints the all paths to leaves.
 // 'root' is the root node of the tree
-void print_tree(const vertex& root);
+std::string tree_to_string(const vertex& root);
 
 // Constructs paths from root node to leaves.
 // 'root' is the root node of the tree

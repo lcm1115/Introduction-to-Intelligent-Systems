@@ -1,18 +1,16 @@
 #include <cmath>
 #include <cstring>
-#include <iostream>
 
 #include "constructtree.h"
 
-using std::cout;
-using std::endl;
 using std::map;
 using std::string;
 using std::vector;
 
 namespace id3 {
 
-void print_tree(const vertex& root) {
+string tree_to_string(const vertex& root) {
+    string tree_string;
     vector<string> paths;
     vector<string> base;
 
@@ -21,8 +19,10 @@ void print_tree(const vertex& root) {
     
     for (vector<string>::const_iterator it = paths.begin();
          it != paths.end(); ++it) {
-        cout << "If " << *it << endl;
+        tree_string += "If " + *it + "\n";
     }
+
+    return tree_string;
 }
 
 void tree_to_paths(const vertex& root,
