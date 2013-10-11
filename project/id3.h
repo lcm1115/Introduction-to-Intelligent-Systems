@@ -9,6 +9,17 @@ struct node {
     bool positive;
 };
 
+// Tokenizes a string and returns it as a vector of strings.
+// 'str' the string being tokenized
+// 'delim' the delimiter by which to split the string
+// Returns a vector that contains the tokens of the string.
+std::vector<std::string> string_to_tokens(const std::string& str, char delim);
+
+// Given a filepath, reads all lines from the file and creates a node from each.
+// 'filepath' the filepath to the data file that contains node information
+// Returns a vector that contains all nodes created from the data file.
+std::vector<node> read_nodes_from_filepath(const std::string& filepath);
+
 // Computes the entropy for a given set based on a value.
 // 'data' must be non-NULL and is a vector containing all nodes.
 // 'value' is the value on which entropy is being computed.

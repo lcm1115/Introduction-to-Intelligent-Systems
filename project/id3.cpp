@@ -1,15 +1,57 @@
 #include "id3.h"
 
 #include <cmath>
-#include <iostream>
+#include <fstream>
+#include <sstream>
 
+using std::getline;
+using std::ifstream;
 using std::map;
+using std::stringstream;
 using std::string;
 using std::vector;
 
 using namespace std;
 
 namespace id3 {
+
+vector<string> string_to_tokens(const string& str, char delim) {
+    vector<string> tokens;
+    stringstream ss(str);
+    string token;
+
+    // Read each token and add it to vector.
+    while (getline(ss, token, delim)) {
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
+vector<node> read_nodes_from_filepath(const string& filepath) {
+    vector<node> nodes;
+    vector<string> values;
+    ifstream input_file(filepath.c_str());
+    string line;
+
+    // Read first line (value names)
+    getline(input_file, line);
+    values = string_to_tokens(line, ' ');
+
+    // Read all other lines (nodes).
+    while (getline(input_file, line)) {
+        node new_node;
+
+        // Get tokens, then add them to corresponding key value for node.
+        vector<string> tmp_values = string_to_tokens(line, ' ');
+        for (int i = 0; i < tmp_values.size(); ++i) {
+            new_node.values[values.at(i)] = tmp_values.at(i);
+        }
+        nodes.push_back(new_node);
+    }
+
+    input_file.close();
+    return nodes;
+}
 
 double entropy(vector<node>* data, string value) {
     map<string, int> value_count;
