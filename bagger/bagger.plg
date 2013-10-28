@@ -1,0 +1,182 @@
+:- dynamic
+    current_bag/1,
+    frozen/1,
+    is_bottle/1,
+    medium_bag/1,
+    medium_item/1,
+    large_bag/1,
+    large_item/1,
+    small_bag/1,
+    small_item/1,
+    step_is/1,
+    there_is/1.
+
+% Rule 1
+action_is(add-bottle-of-pepsi):-
+    step_is(check-order),
+    medium_item(chips),
+    not(medium_item(soft-drink-bottle)),
+    assert(medium_item(soft-drink-bottle)),
+    write('Adding bottle of Pepsi'),
+    nl.
+
+% Rule 2
+action_is(start-bag-large-items):-
+    step_is(check-order),
+    retract(step_is(check-order)),
+    assert(step_is(bag-large-items)),
+    write('Bagging large items'),
+    nl.
+
+% Rule 3
+action_is(put-large-item-in-bag):-
+    step_is(bag-large-items),
+    large_item(X),
+    is_bottle(X),
+    current_bag(large),
+    retract(large_item(X)),
+    retract(is_bottle(X)),
+    assert(large_bag(X)),
+    write('Bagging '),
+    write(X),
+    nl.
+
+% Rule 4
+action_is(put-large-item-in-bag):-
+    step_is(bag-large-items),
+    large_item(X),
+    current_bag(large),
+    retract(large_item(X)),
+    assert(large_bag(X)),
+    write('Putting large item '),
+    write(X),
+    write(' in bag'),
+    nl.
+
+% Rule 5
+action_is(start-fresh-large-bag):-
+    step_is(bag-large-items),
+    large_item(_),
+    not(current_bag(large)),
+    assert(current_bag(large)),
+    write('Starting fresh large bag'),
+    nl.
+
+% Rule 6
+action_is(start-bag-medium-items):-
+    step_is(bag-large-items),
+    retract(step_is(bag-large-items)),
+    assert(step_is(bag-medium-items)),
+    write('Bagging medium items'),
+    nl.
+
+% Rule 7
+action_is(put-medium-item-in-freezer-bag):-
+    step_is(bag-medium-items),
+    medium_item(X),
+    current_bag(empty-bag); current_bag(medium),
+    frozen(X),
+    not(freezer_bag(X)),
+    retract(frozen(X)),
+    assert(freezer_bag(X)),
+    write('Putting medium item '),
+    write(X),
+    write(' in freezer bag'),
+    nl.
+
+% Rule 8
+action_is(put-medium-item-in-bag):-
+    step_is(bag-medium-items),
+    medium_item(X),
+    there_is(empty-bag); current_bag(medium),
+    retract(medium_item(X)),
+    assert(medium_bag(X)),
+    write('Putting medium item '),
+    write(X),
+    write(' in bag'),
+    nl.
+
+% Rule 9
+action_is(start-fresh-medium-bag):-
+    step_is(bag-medium-items),
+    medium_item(_),
+    assert(current_bag(medium)),
+    write('Starting fresh medium bag'),
+    nl.
+
+% Rule 10
+action_is(start-bag-small-items):-
+    step_is(bag-medium-items),
+    retract(step_is(bag-medium-items)),
+    assert(step_is(bag-small-items)),
+    write('Bagging small items'),
+    nl.
+
+% Rule 11
+action_is(put-small-item-in-bag):-
+    step_is(bag-small-items),
+    small_item(X),
+    current_bag(small),
+    small_bag(Y),
+    not(is_bottle(Y)),
+    retract(small_item(X)),
+    assert(small_bag(X)),
+    write('Putting small item '),
+    write(X),
+    write(' in bag'),
+    nl.
+
+% Rule 12
+action_is(put-small-item-in-bag):-
+    step_is(bag-small-items),
+    small_item(X),
+    current_bag(small),
+    retract(small_item(X)),
+    assert(small_bag(X)),
+    write('Putting small item '),
+    write(X),
+    write(' in bag'),
+    nl.
+
+% Rule 13
+action_is(start-fresh-small-bag):-
+    step_is(bag-small-items),
+    small_item(_),
+    assert(current_bag(small)),
+    write('Starting fresh small bag'),
+    nl.
+
+% Rule 14
+action_is(stop):-
+    step_is(bag-small-items),
+    retract(step_is(bag-small-items)),
+    assert(step_is(stop)),
+    write('Bagging finished'),
+    nl,
+    write('Small bag contents:'),
+    nl,
+    not(print_small),
+    write('Medium bag contents:'),
+    nl,
+    not(print_medium),
+    write('Large bag contents:'),
+    nl,
+    not(print_large).
+
+print_small:-
+    small_bag(X),
+    write(X),
+    nl,
+    fail.
+
+print_medium:-
+    medium_bag(X),
+    write(X),
+    nl,
+    fail.
+
+print_large:-
+    large_bag(X),
+    write(X),
+    nl,
+    fail.
