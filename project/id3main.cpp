@@ -3,8 +3,8 @@
 
 #include <iostream>
 
-using decision::node;
-using decision::read_nodes_from_filepath;
+using id3::node;
+using id3::read_nodes_from_filepath;
 using id3::construct_tree;
 using id3::tree_to_string;
 using id3::vertex;
