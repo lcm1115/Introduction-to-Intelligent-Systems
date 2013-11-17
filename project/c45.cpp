@@ -3,20 +3,18 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <map>
 #include <string>
 #include <vector>
 
+using decision::lg;
 using std::map;
 using std::sort;
 using std::string;
 using std::vector;
 
 namespace c45 {
-    double lg(double x) {
-        return log(x) / log(2);
-    }
-
     void partition_sizes(int count[],
                          const vector<node>& data,
                          const string& attr,

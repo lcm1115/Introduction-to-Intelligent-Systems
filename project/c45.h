@@ -8,9 +8,7 @@ namespace c45 {
         std::map<std::string, double> cont_values;
     };
 
-    std::vector<<node> read_nodes_from_filepath(const std::string& filepath);
-
-    double lg(double x);
+    std::vector<node> read_nodes_from_filepath(const std::string& filepath);
 
     double cont_entropy(const std::vector<node>& data,
                         const std::string& attr,
