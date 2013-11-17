@@ -4,17 +4,59 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <fstream>
 #include <map>
 #include <string>
 #include <vector>
 
 using decision::lg;
+using decision::string_to_tokens;
+using std::ifstream;
 using std::map;
 using std::sort;
 using std::string;
 using std::vector;
 
 namespace c45 {
+    vector<node> read_nodes_from_filepath(const string& filepath) {
+        vector<node> nodes;
+        vector<string> values;
+        map<string, char> value_types;
+        vector<string> tokens;
+        ifstream input_file(filepath.c_str());
+        string line;
+
+        // Get value types.
+        getline(input_file, line);
+        tokens = string_to_tokens(line, ' ');
+        for (int i = 0; i < tokens.size(); ++i) {
+            int split_index = tokens.at(i).find(':');
+            string value_name = tokens.at(i).substr(0, split_index);
+            char value_type = tokens.at(i).at(split_index + 1);
+            value_types[value_name] = value_type;
+            values.push_back(value_name);
+        }
+
+        while (getline(input_file, line)) {
+            node new_node;
+
+            vector<string> tmp_values = string_to_tokens(line, ' ');
+
+            for (int i = 0; i < tmp_values.size(); ++i) {
+                if (value_types[values.at(i)] == 'D') {
+                    new_node.string_values[values.at(i)] = tmp_values.at(i);
+                } else {
+                    new_node.cont_values[values.at(i)] =
+                        atof(tmp_values.at(i).c_str());
+                }
+            }
+
+            nodes.push_back(new_node);
+        }
+
+        input_file.close();
+        return nodes;
+    }
     void partition_sizes(int count[],
                          const vector<node>& data,
                          const string& attr,
@@ -69,23 +111,20 @@ namespace c45 {
     }
 
     double ideal_partition(const vector<node>& data,
-                           const string& attr,
-                           const string& target_attr) {
+                           const string& attr) {
         vector<double> values(data.size());
         for (vector<node>::const_iterator it = data.begin();
              it != data.end(); ++it) {
             values.push_back(it->cont_values.at(attr));
         }
-        sort(values.begin(), values.end());
         double max_ent = 0;
         double partition = values.at(0);
 
         for (int i = 0; i < values.size() - 1; ++i) {
-            double part = (values.at(i) + values.at(i + 1)) / 2;
-            double ent = cont_entropy(data, attr, part);
+            double ent = cont_entropy(data, attr, values.at(i));
             if (ent > max_ent) {
                 max_ent = ent;
-                partition = part;
+                partition = values.at(i);
             }
         }
 
@@ -96,31 +135,5 @@ namespace c45 {
 using namespace c45;
 
 int main(int argc, char** argv) {
-    vector<node> nodes;
-    node n1;
-    n1.cont_values["TEST"] = .25;
-    n1.string_values["TAR"] = "A";
-    nodes.push_back(n1);
-    node n2;
-    n2.cont_values["TEST"] = .4;
-    n2.string_values["TAR"] = "B";
-    nodes.push_back(n2);
-    node n3;
-    n3.cont_values["TEST"] = .75;
-    n3.string_values["TAR"] = "A";
-    nodes.push_back(n3);
-    node n4;
-    n4.cont_values["TEST"] = .675;
-    n4.string_values["TAR"] = "B";
-    nodes.push_back(n4);
-    node n5;
-    n5.cont_values["TEST"] = .1;
-    n5.string_values["TAR"] = "A";
-    nodes.push_back(n5);
-    printf("Test 1: %f\n", cont_entropy(nodes, "TEST", 0.0));
-    printf("Test 2: %f\n", cont_entropy(nodes, "TEST", 0.5));
-    printf("Test 3: %f\n", cont_entropy(nodes, "TEST", 1.0));
-    double ideal = ideal_partition(nodes, "TEST", "TAR");
-    printf("Ideal Partition: %f\n", ideal);
-    printf("Ideal Entropy: %f\n", cont_entropy(nodes, "TEST", ideal));
+    vector<node> nodes = read_nodes_from_filepath(argv[1]);
 }
