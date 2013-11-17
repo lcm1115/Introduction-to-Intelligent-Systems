@@ -83,6 +83,7 @@ double cont_entropy(
     partition_sizes(count, data, attr, partition);
     double set_entropy = 0.0;
 
+    // Compute entropy based on size of partitions.
     double p;
     if (count[0] > 0) {
         p = (double) count[0] / data.size();
@@ -124,6 +125,7 @@ double ideal_partition(const vector<node>& data,
     double max_ent = 0;
     double partition = values.at(0);
 
+    // Find the partition that best splits the data.
     for (int i = 0; i < values.size() - 1; ++i) {
         double ent = cont_entropy(data, attr, values.at(i));
         if (ent > max_ent) {
