@@ -135,4 +135,65 @@ double ideal_partition(const vector<node>& data,
     return partition;
 }
 
+double entropy(const vector<node>& data, const string& value) {
+    map<string, int> value_count;
+    double set_entropy = 0.0;
+
+    // Get occurrences of each value.
+    value_count = count_occurrences(data, value);
+
+    // Compute entropy.
+    for (map<string, int>::iterator it = value_count.begin();
+         it != value_count.end(); ++it) {
+        double p = (double) it->second / data.size();
+        set_entropy += -p * lg(p);
+        printf("%s: %d: %f\n", it->first.c_str(), it->second, p);
+    }
+
+    return set_entropy;
+}
+
+double subset_entropy(const vector<node>& data,
+                      const string& key,
+                      const string& split_value,
+                      const string& tar_val) {
+    vector<node> subset;
+
+    // Split the set.
+    for (vector<node>::const_iterator it = data.begin();
+         it != data.end(); ++it) {
+        if (it->string_values.at(key).compare(split_value) == 0) {
+            subset.push_back(*it);
+        }
+    }
+
+    // Compute entropy of subset.
+    return entropy(subset, tar_val);
+}
+
+double info_gain(const vector<node>& data,
+                 const string& split_value,
+                 const string& tar_val) {
+    map<string, int> value_count;
+    double set_entropy = 0.0;
+    double gain = 0.0;
+
+    // Get occurrences of each value.
+    value_count = count_occurrences(data, split_value);
+
+    // Compute the entropy of each subset (when split by 'value').
+    for (map<string, int>::iterator it = value_count.begin();
+         it != value_count.end(); ++it) {
+        double p = (double) it->second / data.size();
+        double sub_entropy =
+            subset_entropy(data, split_value, it->first, tar_val);
+        set_entropy += p * sub_entropy;
+    }
+
+    // Compute the difference in entropy (gain).
+    gain = entropy(data, tar_val) - set_entropy;
+
+    return gain;
+}
+
 }  // namespace c45
