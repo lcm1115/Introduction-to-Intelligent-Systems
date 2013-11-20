@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
 #include <fstream>
 #include <map>
 #include <string>
@@ -77,24 +78,22 @@ void partition_sizes(int count[],
     }
 }
 
-double cont_entropy(
-        const vector<node>& data, const string& attr, double partition) {
-    int count[] = { 0, 0 };
-    partition_sizes(count, data, attr, partition);
-    double set_entropy = 0.0;
+vector<node> cont_split(const vector<node>& data,
+                        const string& attr,
+                        double partition,
+                        bool gt) {
+    vector<node> split;
 
-    // Compute entropy based on size of partitions.
-    double p;
-    if (count[0] > 0) {
-        p = (double) count[0] / data.size();
-        set_entropy += -p * lg(p);
-    }
-    if (count[1] > 0) {
-        p = (double) count[1] / data.size();
-        set_entropy += -p * lg(p);
+    for (vector<node>::const_iterator it = data.begin();
+         it != data.end(); ++it) {
+        if (gt && it->cont_values.at(attr) > partition) {
+            split.push_back(*it);
+        } else if (!gt && it->cont_values.at(attr) <= partition) {
+            split.push_back(*it);
+        }
     }
 
-    return set_entropy;
+    return split;
 }
 
 map<string, int> count_occurrences(
@@ -116,7 +115,8 @@ map<string, int> count_occurrences(
 }
 
 double ideal_partition(const vector<node>& data,
-                       const string& attr) {
+                       const string& attr,
+                       const string& tar_attr) {
     vector<double> values(data.size());
     for (vector<node>::const_iterator it = data.begin();
          it != data.end(); ++it) {
@@ -127,7 +127,36 @@ double ideal_partition(const vector<node>& data,
 
     // Find the partition that best splits the data.
     for (int i = 0; i < values.size() - 1; ++i) {
-        double ent = cont_entropy(data, attr, values.at(i));
+        map<string, int[2]> count_map;
+        double part = values.at(i);
+
+        // Count how many of each entry there are that are less than or equal to
+        // the partition with a specific value for tar_attr, and those that are
+        // greater than the partition with a specific value for tar_attr.
+        for (int j = 0; j < data.size(); ++j) {
+            string value = data.at(j).string_values.at(tar_attr);
+            double cont = data.at(j).cont_values.at(attr);
+            if (count_map.find(value) == count_map.end()) {
+                count_map[value][0] = 0;
+                count_map[value][1] = 0;
+            }
+            if (cont <= part) {
+                ++count_map[value][0];
+            } else {
+                ++count_map[value][1];
+            }
+        }
+
+        // Compute entropy for continuous value
+        double ent = 0;
+        for (map<string, int[2]>::const_iterator it = count_map.begin();
+             it != count_map.end(); ++it) {
+            for (int i = 0; i < 2; ++i) {
+                double p = (double) it->second[i] / data.size();
+                ent += -p * lg(p);
+            }
+        }
+
         if (ent > max_ent) {
             max_ent = ent;
             partition = values.at(i);
@@ -149,7 +178,6 @@ double entropy(const vector<node>& data, const string& value) {
          it != value_count.end(); ++it) {
         double p = (double) it->second / data.size();
         set_entropy += -p * lg(p);
-        printf("%s: %d: %f\n", it->first.c_str(), it->second, p);
     }
 
     return set_entropy;

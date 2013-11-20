@@ -24,22 +24,19 @@ void partition_sizes(int count[],
                      const std::string& attr,
                      double partition);
 
-// Determines the entropy of a set when partitioned by a value.
-// 'data' is the list of nodes
-// 'attr' is the continuous attribute
-// 'partition' is the partition threshold for the splitting
-// Returns a double that represents the entropy of the set.
-double cont_entropy(const std::vector<node>& data,
-                    const std::string& attr,
-                    double partition);
+std::vector<node> cont_split(const std::vector<node>& data,
+                             const std::string& attr,
+                             double partition,
+                             bool gt);
 
 // Determines the ideal partition for a set for a continuous attribute.
 // 'data' is the list of nodes
 // 'attr' is the continuous attribute for which a partition is being found
 // Returns a double representing the value on which the set should be
 // partitioned.
-double ideal_partition(
-        const std::vector<node>& data, const std::string& attr);
+double ideal_partition(const std::vector<node>& data,
+                       const std::string& attr,
+                       const std::string& tar_attr);
 
 // Computes the entropy for a given set based on a value.
 // 'data' must be non-NULL and is a vector containing all nodes.
