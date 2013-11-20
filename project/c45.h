@@ -24,6 +24,17 @@ void partition_sizes(int count[],
                      const std::string& attr,
                      double partition);
 
+// Determines the entropy of a set when partitioned by a value.
+// 'data' is the list of nodes
+// 'attr' is the continuous attribute
+// 'tar_attr' is the target attribute for the decision tree
+// 'partition' is the partition threshold for the splitting
+// Returns a double that represents the entropy of the set.
+double cont_entropy(const std::vector<node>& data,
+                    const std::string& attr,
+                    const std::string& tar_attr,
+                    double partition);
+
 std::vector<node> cont_split(const std::vector<node>& data,
                              const std::string& attr,
                              double partition,

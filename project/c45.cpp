@@ -114,6 +114,42 @@ map<string, int> count_occurrences(
     return value_count;
 }
 
+double cont_entropy(const vector<node>& data,
+                    const string& attr,
+                    const string& tar_attr,
+                    double partition) {
+    map<string, int[2]> count_map;
+
+    // Count how many of each entry there are that are less than or equal to
+    // the partition with a specific value for tar_attr, and those that are
+    // greater than the partition with a specific value for tar_attr.
+    for (int j = 0; j < data.size(); ++j) {
+        string value = data.at(j).string_values.at(tar_attr);
+        double cont = data.at(j).cont_values.at(attr);
+        if (count_map.find(value) == count_map.end()) {
+            count_map[value][0] = 0;
+            count_map[value][1] = 0;
+        }
+        if (cont <= partition) {
+            ++count_map[value][0];
+        } else {
+            ++count_map[value][1];
+        }
+    }
+
+    // Compute entropy for continuous value
+    double ent = 0;
+    for (map<string, int[2]>::const_iterator it = count_map.begin();
+         it != count_map.end(); ++it) {
+        for (int i = 0; i < 2; ++i) {
+            double p = (double) it->second[i] / data.size();
+            ent += -p * lg(p);
+        }
+    }
+
+    return ent;
+}
+
 double ideal_partition(const vector<node>& data,
                        const string& attr,
                        const string& tar_attr) {
@@ -127,39 +163,11 @@ double ideal_partition(const vector<node>& data,
 
     // Find the partition that best splits the data.
     for (int i = 0; i < values.size() - 1; ++i) {
-        map<string, int[2]> count_map;
         double part = values.at(i);
-
-        // Count how many of each entry there are that are less than or equal to
-        // the partition with a specific value for tar_attr, and those that are
-        // greater than the partition with a specific value for tar_attr.
-        for (int j = 0; j < data.size(); ++j) {
-            string value = data.at(j).string_values.at(tar_attr);
-            double cont = data.at(j).cont_values.at(attr);
-            if (count_map.find(value) == count_map.end()) {
-                count_map[value][0] = 0;
-                count_map[value][1] = 0;
-            }
-            if (cont <= part) {
-                ++count_map[value][0];
-            } else {
-                ++count_map[value][1];
-            }
-        }
-
-        // Compute entropy for continuous value
-        double ent = 0;
-        for (map<string, int[2]>::const_iterator it = count_map.begin();
-             it != count_map.end(); ++it) {
-            for (int i = 0; i < 2; ++i) {
-                double p = (double) it->second[i] / data.size();
-                ent += -p * lg(p);
-            }
-        }
-
+        double ent = cont_entropy(data, attr, tar_attr, part);
         if (ent > max_ent) {
             max_ent = ent;
-            partition = values.at(i);
+            partition = part;
         }
     }
 
