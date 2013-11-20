@@ -1,6 +1,7 @@
 #include "c45.h"
 #include "decision.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -13,6 +14,7 @@ using decision::lg;
 using decision::string_to_tokens;
 using std::ifstream;
 using std::map;
+using std::sort;
 using std::string;
 using std::vector;
 
@@ -141,9 +143,12 @@ double cont_entropy(const vector<node>& data,
     double ent = 0;
     for (map<string, int[2]>::const_iterator it = count_map.begin();
          it != count_map.end(); ++it) {
+        int total = it->second[0] + it->second[1];
         for (int i = 0; i < 2; ++i) {
-            double p = (double) it->second[i] / data.size();
-            ent += -p * lg(p);
+            double p = (double) it->second[i] / total;
+            if (p > 0) {
+                ent += (double) total / data.size() * -p * lg(p);
+            }
         }
     }
 
@@ -153,16 +158,19 @@ double cont_entropy(const vector<node>& data,
 double ideal_partition(const vector<node>& data,
                        const string& attr,
                        const string& tar_attr) {
-    vector<double> values(data.size());
+    vector<double> values;
+    double current_entropy = entropy(data, tar_attr);
     for (vector<node>::const_iterator it = data.begin();
          it != data.end(); ++it) {
         values.push_back(it->cont_values.at(attr));
     }
+
     double max_ent = 0;
     double partition = values.at(0);
+    sort(values.begin(), values.end());
 
     // Find the partition that best splits the data.
-    for (int i = 0; i < values.size() - 1; ++i) {
+    for (int i = 0; i < values.size() ; ++i) {
         double part = values.at(i);
         double ent = cont_entropy(data, attr, tar_attr, part);
         if (ent > max_ent) {
