@@ -16,6 +16,13 @@ struct node {
     std::map<std::string, double> cont_values;
 };
 
+// Prints all paths from root to leaves for a given decision tree.
+// 'root' is the root of the current tree or subtree
+// 'path' is a vector of keys that led to the current tree or subtree
+void print(vertex root, std::vector<std::string> path);
+
+void find_prune_candidates(vertex* root, std::vector<vertex*>* candidates);
+
 // Given a filepath, reads all lines from the file and creates a node from each.
 // 'filepath' the filepath to the data file that contains node information
 // Returns a vector that contains all nodes created from the data file.

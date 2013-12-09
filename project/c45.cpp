@@ -24,6 +24,40 @@ using std::vector;
 
 namespace c45 {
 
+void print(vertex root, vector<string> path) {
+    if (!root.terminal) {
+        for (auto it : root.children) {
+            vector<string> next = path;
+            next.push_back(it.first.c_str());
+            print(it.second, next);
+        }
+    } else {
+        for (auto it : path) {
+            printf("%s\t->\t", it.c_str());
+        }
+        printf("%s\n", root.key.c_str());
+    }
+}
+
+void find_prune_candidates(vertex* root, vector<vertex*>* candidates) {
+    vector<vertex*> children;
+    for (map<string, vertex>::iterator it = root->children.begin();
+         it != root->children.end(); ++it) {
+        if (it->second.children.size() != 0) {
+            children.push_back(&(it->second));
+        }
+    }
+
+    if (children.size() == 0) {
+        candidates->push_back(root);
+    } else {
+        for (vector<vertex*>::iterator it = children.begin();
+             it != children.end(); ++it) {
+            find_prune_candidates(*it, candidates);
+        }
+    }
+}
+
 vector<node> read_nodes_from_filepath(const string& filepath) {
     vector<node> nodes;
     vector<string> values;
