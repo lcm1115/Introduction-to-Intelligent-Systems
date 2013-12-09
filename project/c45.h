@@ -4,6 +4,13 @@
 
 namespace c45 {
 
+struct vertex {
+    std::string key;
+    std::string tar_val;
+    bool terminal;
+    std::map<std::string, vertex> children;
+};
+
 struct node {
     std::map<std::string, std::string> string_values;
     std::map<std::string, double> cont_values;
@@ -35,19 +42,14 @@ double cont_entropy(const std::vector<node>& data,
                     const std::string& tar_attr,
                     double partition);
 
-std::vector<node> cont_split(const std::vector<node>& data,
-                             const std::string& attr,
-                             double partition,
-                             bool gt);
-
 // Determines the ideal partition for a set for a continuous attribute.
 // 'data' is the list of nodes
 // 'attr' is the continuous attribute for which a partition is being found
 // Returns a double representing the value on which the set should be
 // partitioned.
-double ideal_partition(const std::vector<node>& data,
-                       const std::string& attr,
-                       const std::string& tar_attr);
+std::pair<double, double> partition_gain(const std::vector<node>& data,
+                                         const std::string& attr,
+                                         const std::string& tar_attr);
 
 // Computes the entropy for a given set based on a value.
 // 'data' must be non-NULL and is a vector containing all nodes.
@@ -77,5 +79,15 @@ double subset_entropy(const std::vector<node>& data,
 double info_gain(const std::vector<node>& data,
                  const std::string& split_value,
                  const std::string& tar_val);
+
+vertex construct_tree(
+        const std::vector<node>& data, const std::string& tar_val);
+
+std::map<std::string, std::vector<node> > split_nodes(
+        const std::vector<node>& data, const std::string& key, double part);
+
+// Splits the data set along the given value
+std::map<std::string, std::vector<node> > split_nodes(
+        const std::vector<node>& data, const std::string& key);
 
 }  // namespace c45

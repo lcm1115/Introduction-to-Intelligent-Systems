@@ -5,16 +5,20 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <map>
 #include <string>
+#include <sstream>
 #include <vector>
 
 using decision::lg;
 using decision::string_to_tokens;
 using std::ifstream;
 using std::map;
+using std::pair;
 using std::sort;
+using std::ostringstream;
 using std::string;
 using std::vector;
 
@@ -80,24 +84,6 @@ void partition_sizes(int count[],
     }
 }
 
-vector<node> cont_split(const vector<node>& data,
-                        const string& attr,
-                        double partition,
-                        bool gt) {
-    vector<node> split;
-
-    for (vector<node>::const_iterator it = data.begin();
-         it != data.end(); ++it) {
-        if (gt && it->cont_values.at(attr) > partition) {
-            split.push_back(*it);
-        } else if (!gt && it->cont_values.at(attr) <= partition) {
-            split.push_back(*it);
-        }
-    }
-
-    return split;
-}
-
 map<string, int> count_occurrences(
         const vector<node>& data, const string& key) {
     map<string, int> value_count;
@@ -155,9 +141,9 @@ double cont_entropy(const vector<node>& data,
     return ent;
 }
 
-double ideal_partition(const vector<node>& data,
-                       const string& attr,
-                       const string& tar_attr) {
+pair<double, double> partition_gain(const vector<node>& data,
+                                    const string& attr,
+                                    const string& tar_attr) {
     vector<double> values;
     double current_entropy = entropy(data, tar_attr);
     for (vector<node>::const_iterator it = data.begin();
@@ -165,21 +151,21 @@ double ideal_partition(const vector<node>& data,
         values.push_back(it->cont_values.at(attr));
     }
 
-    double max_ent = 0;
-    double partition = values.at(0);
+    double max_gain = 0.0;
+    double ideal_part = 0.0;
     sort(values.begin(), values.end());
 
     // Find the partition that best splits the data.
-    for (int i = 0; i < values.size() ; ++i) {
+    for (int i = 2; i < values.size() - 2; ++i) {
         double part = values.at(i);
         double ent = cont_entropy(data, attr, tar_attr, part);
-        if (ent > max_ent) {
-            max_ent = ent;
-            partition = part;
+        if (current_entropy - ent > max_gain) {
+            max_gain = current_entropy - ent;
+            ideal_part = part;
         }
     }
 
-    return partition;
+    return pair<double, double>(max_gain, ideal_part);
 }
 
 double entropy(const vector<node>& data, const string& value) {
@@ -240,6 +226,130 @@ double info_gain(const vector<node>& data,
     gain = entropy(data, tar_val) - set_entropy;
 
     return gain;
+}
+
+vertex construct_tree(const vector<node>& data, const string& tar_val) {
+    vertex root;
+    root.terminal = false;
+
+    map<string, int> value_counts;
+    int entries = 0;
+    for (vector<node>::const_iterator it = data.begin();
+         it != data.end(); ++it) {
+        if (value_counts.find(it->string_values.at(tar_val)) !=
+            value_counts.end()) {
+            value_counts[tar_val] = 0;
+            ++entries;
+        }
+        ++value_counts[tar_val];
+    }
+
+    if (entries == 1) {
+        root.key = data.at(0).string_values.at(tar_val);
+        root.terminal = true;
+        return root;
+    }
+
+    double max_gain = 0;
+    double ideal_part = 0;
+    string split_value;
+    int split_type = 0;
+    for (map<string, string>::const_iterator it =
+         data.begin()->string_values.begin();
+         it != data.begin()->string_values.end(); ++it) {
+        if (strcmp(it->first.c_str(), tar_val.c_str()) != 0) {
+            double gain = info_gain(data, it->first, tar_val);
+            if (gain > max_gain) {
+                max_gain = gain;
+                split_value = it->first;
+            }
+        }
+    }
+
+    if (max_gain == 0) {
+        root.key = data.at(0).string_values.at(tar_val);
+        root.terminal = true;
+        return root;
+    }
+
+    for (map<string, double>::const_iterator it =
+         data.begin()->cont_values.begin();
+         it != data.begin()->cont_values.end(); ++it) {
+        pair<double, double> gain = partition_gain(data, it->first, tar_val);
+        if (gain.first > max_gain) {
+            max_gain = gain.first;
+            ideal_part = gain.second;
+            split_value = it->first;
+            split_type = 1;
+        }
+    }
+
+    root.key = split_value;
+    map<string, vector<node> > children;
+    if (split_type == 0) {
+        children = split_nodes(data, split_value);
+    } else {
+        children = split_nodes(data, split_value, ideal_part);
+    }
+
+    for (map<string, vector<node> >::iterator it = children.begin();
+         it != children.end(); ++it) {
+        root.children[it->first] = construct_tree(it->second, tar_val);
+    }
+
+    return root;
+}
+
+map<string, vector<node> > split_nodes(
+        const vector<node>& data, const string& key) {
+    map<string, vector<node> > split;
+    for(vector<node>::const_iterator it = data.begin();
+        it != data.end(); ++it) {
+        // If the key's value at the current node has not yet been seen, create
+        // a new vector and push the current node to it. Else push it to the
+        // existing vector.
+        string value = it->string_values.at(key);
+        string map_key = key + " = " + value;
+        if(split.find(map_key) == split.end()) {
+            vector<node> new_value;
+            new_value.push_back(*it);
+            split[map_key] = new_value;
+        } else{
+            split[map_key].push_back(*it);
+        }
+    }
+
+    return split;
+}
+
+map<string, vector<node> > split_nodes(
+        const vector<node>& data, const string& key, double part) {
+    map<string, vector<node> > split;
+    ostringstream s;
+    s << key << " <= " << part;
+    string le_key = s.str();
+    s.clear();
+    s.str(string());
+    s << key << " > " << part;
+    string gt_key = s.str();
+    split[le_key] = vector<node>();
+    split[gt_key] = vector<node>();
+    for(vector<node>::const_iterator it = data.begin();
+        it != data.end(); ++it) {
+        // If the key's value at the current node has not yet been seen, create
+        // a new vector and push the current node to it. Else push it to the
+        // existing vector.
+        node to_insert = *it;
+        double value = to_insert.cont_values.at(key);
+        to_insert.cont_values.erase(key);
+        if (value <= part) {
+            split[le_key].push_back(to_insert);
+        } else {
+            split[gt_key].push_back(to_insert);
+        }
+    }
+
+    return split;
 }
 
 }  // namespace c45
